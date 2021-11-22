@@ -6,11 +6,11 @@
 
     <parent>
         <groupId>io.netty.contrib</groupId>
-        <artifactId>netty-template-parent</artifactId>
+        <artifactId>netty-codec-stomp-parent</artifactId>
         <version>5.0.0.Final-SNAPSHOT</version>
     </parent>
 
-    <artifactId>netty-template-benchmarks</artifactId>
+    <artifactId>netty-codec-stomp-benchmarks</artifactId>
     <version>${parent.version}</version>
 
     <properties>
@@ -30,7 +30,7 @@
     <dependencies>
         <dependency>
             <groupId>io.netty.contrib</groupId>
-            <artifactId>netty-template</artifactId>
+            <artifactId>netty-codec-stomp</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
