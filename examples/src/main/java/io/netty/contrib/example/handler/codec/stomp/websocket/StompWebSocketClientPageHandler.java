@@ -15,43 +15,24 @@
  */
 package io.netty.contrib.example.handler.codec.stomp.websocket;
 
-import io.netty.channel.ChannelFutureListeners;
-import io.netty.channel.ChannelHandler.Sharable;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.DefaultFileRegion;
-import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.handler.codec.http.DefaultFullHttpRequest;
-import io.netty.handler.codec.http.DefaultFullHttpResponse;
-import io.netty.handler.codec.http.DefaultHttpResponse;
-import io.netty.handler.codec.http.EmptyLastHttpContent;
-import io.netty.handler.codec.http.FullHttpRequest;
-import io.netty.handler.codec.http.FullHttpResponse;
-import io.netty.handler.codec.http.HttpHeaderNames;
-import io.netty.handler.codec.http.HttpHeaderValues;
-import io.netty.handler.codec.http.HttpResponse;
-import io.netty.handler.codec.http.HttpUtil;
-import io.netty.util.CharsetUtil;
+import io.netty5.channel.ChannelFutureListeners;
+import io.netty5.channel.ChannelHandlerContext;
+import io.netty5.channel.DefaultFileRegion;
+import io.netty5.channel.SimpleChannelInboundHandler;
+import io.netty5.handler.codec.http.*;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.net.URL;
 
-import static io.netty.handler.codec.http.HttpHeaderNames.*;
-import static io.netty.handler.codec.http.HttpHeaderNames.CONNECTION;
-import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
-import static io.netty.handler.codec.http.HttpHeaderValues.*;
-import static io.netty.handler.codec.http.HttpHeaderValues.CLOSE;
-import static io.netty.handler.codec.http.HttpHeaderValues.KEEP_ALIVE;
-import static io.netty.handler.codec.http.HttpHeaderValues.TEXT_PLAIN;
-import static io.netty.handler.codec.http.HttpResponseStatus.*;
-import static io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST;
-import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND;
-import static io.netty.handler.codec.http.HttpResponseStatus.OK;
-import static io.netty.handler.codec.http.HttpVersion.*;
-import static io.netty.handler.codec.http.HttpVersion.HTTP_1_0;
+import static io.netty5.handler.codec.http.HttpHeaderNames.CONNECTION;
+import static io.netty5.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
+import static io.netty5.handler.codec.http.HttpHeaderValues.*;
+import static io.netty5.handler.codec.http.HttpResponseStatus.*;
+import static io.netty5.handler.codec.http.HttpVersion.HTTP_1_0;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
-@Sharable
 public final class StompWebSocketClientPageHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
 
     static final StompWebSocketClientPageHandler INSTANCE = new StompWebSocketClientPageHandler();
@@ -60,10 +41,15 @@ public final class StompWebSocketClientPageHandler extends SimpleChannelInboundH
     }
 
     @Override
+    public boolean isSharable() {
+        return true;
+    }
+
+    @Override
     protected void messageReceived(ChannelHandlerContext ctx, FullHttpRequest request) {
-        if (request.headers().contains(HttpHeaderNames.UPGRADE, WEBSOCKET, true)) {
+        if (request.headers().containsIgnoreCase(HttpHeaderNames.UPGRADE, WEBSOCKET)) {
             ctx.fireChannelRead(new DefaultFullHttpRequest(request.protocolVersion(), request.method(), request.uri(),
-                    request.payload().copy()));
+                    request.payload().copy(), request.headers(), request.trailingHeaders()));
             return;
         }
 
@@ -79,7 +65,7 @@ public final class StompWebSocketClientPageHandler extends SimpleChannelInboundH
                     ctx.bufferAllocator().allocate(0));
             notFound.headers().set(CONTENT_TYPE, TEXT_PLAIN);
             String payload = "Requested resource " + request.uri() + " not found";
-            notFound.payload().writeCharSequence(payload, CharsetUtil.UTF_8);
+            notFound.payload().writeCharSequence(payload, UTF_8);
             HttpUtil.setContentLength(notFound, notFound.payload().readableBytes());
             sendResponse(notFound, ctx, true);
         }

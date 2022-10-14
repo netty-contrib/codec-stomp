@@ -15,21 +15,10 @@
  */
 package io.netty.contrib.handler.codec.stomp;
 
-import io.netty.util.AsciiString;
-import org.junit.jupiter.api.Test;
+/**
+ * Combines {@link HeadersStompFrame} and {@link LastContentStompFrame} into one
+ * frame. So it represents a <i>complete</i> STOMP frame.
+ */
+public interface FullStompFrame extends HeadersStompFrame, LastContentStompFrame<FullStompFrame> {
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-
-public class StompHeadersTest {
-    @Test
-    public void testHeadersCaseSensitive() {
-        DefaultStompHeaders headers = new DefaultStompHeaders();
-        AsciiString foo = new AsciiString("foo");
-        AsciiString value = new AsciiString("value");
-        headers.add(foo, value);
-        assertNull(headers.get("Foo"));
-        assertEquals(value, headers.get(foo));
-        assertEquals(value, headers.get(foo.toString()));
-    }
 }

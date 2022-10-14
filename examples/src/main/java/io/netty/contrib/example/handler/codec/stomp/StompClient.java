@@ -15,21 +15,21 @@
  */
 package io.netty.contrib.example.handler.codec.stomp;
 
-import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelPipeline;
-import io.netty.channel.EventLoopGroup;
-import io.netty.channel.MultithreadEventLoopGroup;
-import io.netty.channel.nio.NioHandler;
-import io.netty.channel.socket.SocketChannel;
-import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.contrib.handler.codec.stomp.StompSubframeAggregator;
-import io.netty.contrib.handler.codec.stomp.StompSubframeDecoder;
-import io.netty.contrib.handler.codec.stomp.StompSubframeEncoder;
+import io.netty.contrib.handler.codec.stomp.StompFrameAggregator;
+import io.netty.contrib.handler.codec.stomp.StompFrameDecoder;
+import io.netty.contrib.handler.codec.stomp.StompFrameEncoder;
+import io.netty5.bootstrap.Bootstrap;
+import io.netty5.channel.ChannelInitializer;
+import io.netty5.channel.ChannelPipeline;
+import io.netty5.channel.EventLoopGroup;
+import io.netty5.channel.MultithreadEventLoopGroup;
+import io.netty5.channel.nio.NioHandler;
+import io.netty5.channel.socket.SocketChannel;
+import io.netty5.channel.socket.nio.NioSocketChannel;
 
 /**
- * very simple stomp client implementation example, requires running stomp server to actually work
- * uses default username/password and destination values from hornetq message broker
+ * Very simple stomp client implementation example, requires running stomp server to actually work
+ * uses default username/password and destination values from hornetq message broker.
  */
 public final class StompClient {
 
@@ -48,14 +48,14 @@ public final class StompClient {
                 @Override
                 protected void initChannel(SocketChannel ch) throws Exception {
                     ChannelPipeline pipeline = ch.pipeline();
-                    pipeline.addLast("decoder", new StompSubframeDecoder());
-                    pipeline.addLast("encoder", new StompSubframeEncoder());
-                    pipeline.addLast("aggregator", new StompSubframeAggregator(1048576));
+                    pipeline.addLast("decoder", new StompFrameDecoder());
+                    pipeline.addLast("encoder", new StompFrameEncoder());
+                    pipeline.addLast("aggregator", new StompFrameAggregator<>(1048576));
                     pipeline.addLast("handler", new StompClientHandler());
                 }
             });
 
-            b.connect(HOST, PORT).get().closeFuture().sync();
+            b.connect(HOST, PORT).asStage().get().closeFuture().asStage().sync();
         } finally {
             group.shutdownGracefully();
         }

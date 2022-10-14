@@ -15,69 +15,56 @@
  */
 package io.netty.contrib.microbenchmarks.stomp;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.PooledByteBufAllocator;
-import io.netty.buffer.Unpooled;
-import io.netty.buffer.UnpooledByteBufAllocator;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.contrib.handler.codec.stomp.DefaultStompFrame;
-import io.netty.contrib.handler.codec.stomp.StompFrame;
-import io.netty.contrib.handler.codec.stomp.StompHeadersSubframe;
-import io.netty.contrib.handler.codec.stomp.StompSubframeEncoder;
-import io.netty.microbench.channel.EmbeddedChannelWriteReleaseHandlerContext;
-import io.netty.microbench.util.AbstractMicrobenchmark;
-import io.netty.util.concurrent.Future;
-import org.openjdk.jmh.annotations.Benchmark;
-import org.openjdk.jmh.annotations.Fork;
-import org.openjdk.jmh.annotations.Level;
-import org.openjdk.jmh.annotations.Measurement;
-import org.openjdk.jmh.annotations.Param;
-import org.openjdk.jmh.annotations.Scope;
-import org.openjdk.jmh.annotations.Setup;
-import org.openjdk.jmh.annotations.State;
-import org.openjdk.jmh.annotations.TearDown;
-import org.openjdk.jmh.annotations.Threads;
-import org.openjdk.jmh.annotations.Warmup;
+import io.netty.contrib.handler.codec.stomp.DefaultFullStompFrame;
+import io.netty.contrib.handler.codec.stomp.HeadersStompFrame;
+import io.netty.contrib.handler.codec.stomp.StompFrameEncoder;
+import io.netty5.buffer.Buffer;
+import io.netty5.buffer.BufferAllocator;
+import io.netty5.channel.ChannelHandlerContext;
+import io.netty5.microbench.channel.EmbeddedChannelWriteReleaseHandlerContext;
+import io.netty5.microbench.util.AbstractMicrobenchmark;
+import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.profile.GCProfiler;
 import org.openjdk.jmh.runner.options.ChainedOptionsBuilder;
 
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Supplier;
+
+import static io.netty5.buffer.DefaultBufferAllocators.offHeapAllocator;
+import static io.netty5.buffer.DefaultBufferAllocators.onHeapAllocator;
 
 @State(Scope.Benchmark)
-@Fork(value = 2)
+@Fork(value = 1)
 @Threads(1)
-@Warmup(iterations = 5)
-@Measurement(iterations = 10)
+@Warmup(iterations = 2)
+@Measurement(iterations = 3)
 public class StompEncoderBenchmark extends AbstractMicrobenchmark {
 
-    private StompSubframeEncoder stompEncoder;
-    private ByteBuf content;
-    private StompFrame stompFrame;
+    private StompFrameEncoder stompEncoder;
+    private Supplier<Buffer> contentSupplier;
+    private HeadersStompFrame headersFrame;
     private ChannelHandlerContext context;
 
-    @Param({ "true", "false" })
-    public boolean pooledAllocator;
+    @Param({"true", "false"})
+    public boolean offHeapAllocator;
 
     @Param
     public ExampleStompHeadersSubframe.HeadersType headersType;
 
-    @Param({ "0", "100", "1000" })
+    @Param({"0", "10", "100", "1000", "3000"})
     public int contentLength;
 
     @Setup(Level.Trial)
     public void setup() {
         byte[] bytes = new byte[contentLength];
         ThreadLocalRandom.current().nextBytes(bytes);
-        content = Unpooled.wrappedBuffer(bytes);
-        ByteBuf testContent = Unpooled.unreleasableBuffer(content.asReadOnly());
+        BufferAllocator allocator = offHeapAllocator ? offHeapAllocator() : onHeapAllocator();
+        contentSupplier = allocator.constBufferSupplier(bytes);
 
-        StompHeadersSubframe headersSubframe = ExampleStompHeadersSubframe.EXAMPLES.get(headersType);
-        stompFrame = new DefaultStompFrame(headersSubframe.command(), testContent);
-        stompFrame.headers().setAll(headersSubframe.headers());
+        headersFrame = ExampleStompHeadersSubframe.EXAMPLES.get(headersType);
 
-        stompEncoder = new StompSubframeEncoder();
-        context = new EmbeddedChannelWriteReleaseHandlerContext(
-                pooledAllocator? PooledByteBufAllocator.DEFAULT : UnpooledByteBufAllocator.DEFAULT, stompEncoder) {
+        stompEncoder = new StompFrameEncoder();
+        context = new EmbeddedChannelWriteReleaseHandlerContext(allocator, stompEncoder) {
             @Override
             protected void handleException(Throwable t) {
                 handleUnexpectedException(t);
@@ -87,13 +74,16 @@ public class StompEncoderBenchmark extends AbstractMicrobenchmark {
 
     @TearDown(Level.Trial)
     public void teardown() {
-        content.release();
-        content = null;
+        contentSupplier = null;
+        context.close();
     }
 
     @Benchmark
-    public Future<Void> writeStompFrame() {
-        return stompEncoder.write(context, stompFrame.retain());
+    public void writeStompFrame() {
+        context.executor().execute(() ->
+                stompEncoder.write(context, new DefaultFullStompFrame(headersFrame.command(),
+                        contentSupplier.get(), headersFrame.headers())
+                ).addListener(future -> handleUnexpectedException(future.cause())));
     }
 
     @Override

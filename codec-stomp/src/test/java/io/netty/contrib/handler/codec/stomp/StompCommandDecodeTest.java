@@ -15,79 +15,69 @@
  */
 package io.netty.contrib.handler.codec.stomp;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
-import io.netty.channel.embedded.EmbeddedChannel;
-import java.util.Arrays;
-import java.util.Collection;
+import io.netty5.buffer.Buffer;
+import io.netty5.channel.embedded.EmbeddedChannel;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import static io.netty.util.CharsetUtil.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.stream.Stream;
 
-public class StompCommandDecodeTest {
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.stream.Collectors.toList;
+import static org.assertj.core.api.Assertions.assertThat;
+
+class StompCommandDecodeTest {
 
     private EmbeddedChannel channel;
 
     @BeforeEach
-    public void setUp() {
-        channel = new EmbeddedChannel(new StompSubframeDecoder(true));
+    void setUp() {
+        channel = new EmbeddedChannel(new StompFrameDecoder(true));
     }
 
     @AfterEach
-    public void tearDown() {
-        assertFalse(channel.finish());
+    void tearDown() {
+        assertThat(channel.finish()).isFalse();
     }
 
     @ParameterizedTest(name = "{index}: testDecodeCommand({0}) = {1}")
     @MethodSource("stompCommands")
-    public void testDecodeCommand(String rawCommand, StompCommand expectedCommand, Boolean valid) {
-        byte[] frameContent = String.format("%s\n\n\0", rawCommand).getBytes(UTF_8);
-        ByteBuf incoming = Unpooled.wrappedBuffer(frameContent);
-        assertTrue(channel.writeInbound(incoming));
+    void testDecodeCommand(String rawCommand, StompCommand expectedCommand, Boolean valid) {
+        byte[] frameSource = String.format("%s\n\n\0", rawCommand).getBytes(UTF_8);
+        Buffer incoming = channel.bufferAllocator().copyOf(frameSource);
+        assertThat(channel.writeInbound(incoming)).isTrue();
 
-        StompHeadersSubframe frame = channel.readInbound();
-
-        assertNotNull(frame);
-        assertEquals(expectedCommand, frame.command());
+        HeadersStompFrame headersFrame = channel.readInbound();
+        assertThat(headersFrame).isNotNull()
+                .extracting(HeadersStompFrame::command)
+                .isEqualTo(expectedCommand);
 
         if (valid) {
-            assertTrue(frame.decoderResult().isSuccess());
-
-            StompContentSubframe content = channel.readInbound();
-            assertSame(LastStompContentSubframe.EMPTY_LAST_CONTENT, content);
-            content.release();
+            assertThat(headersFrame.decoderResult().isSuccess()).isTrue();
+            try (ContentStompFrame<?> lastContent = channel.readInbound()) {
+                assertThat(lastContent).isEqualTo(new EmptyLastContentStompFrame(channel.bufferAllocator()));
+            }
         } else {
-            assertTrue(frame.decoderResult().isFailure());
-            assertNull(channel.readInbound());
+            assertThat(headersFrame.decoderResult().isFailure()).isTrue();
+            assertThat((Object) channel.readInbound()).isNull();
         }
     }
 
-    public static Collection<Object[]> stompCommands() {
-        return Arrays.asList(new Object[][] {
-                { "STOMP", StompCommand.STOMP, true },
-                { "CONNECT", StompCommand.CONNECT, true },
-                { "SEND", StompCommand.SEND, true },
-                { "SUBSCRIBE", StompCommand.SUBSCRIBE, true },
-                { "UNSUBSCRIBE", StompCommand.UNSUBSCRIBE, true },
-                { "ACK", StompCommand.ACK, true },
-                { "NACK", StompCommand.NACK, true },
-                { "BEGIN", StompCommand.BEGIN, true },
-                { "ABORT", StompCommand.ABORT, true },
-                { "COMMIT", StompCommand.COMMIT, true },
-                { "DISCONNECT", StompCommand.DISCONNECT, true },
+    static Collection<Object[]> stompCommands() {
+        Stream<Object[]> valid = Arrays.stream(StompCommand.values())
+                .filter(command -> command != StompCommand.UNKNOWN)
+                .map(command -> new Object[]{command.name(), command, true});
 
-                // invalid commands
-                { "INVALID", StompCommand.UNKNOWN, false },
-                { "disconnect", StompCommand.UNKNOWN , false }
-        });
+        Stream<Object[]> invalid = Stream.of(
+                new Object[]{"INVALID", StompCommand.UNKNOWN, false},
+                new Object[]{"UNKNOWN", StompCommand.UNKNOWN, false},
+                new Object[]{"connect", StompCommand.UNKNOWN, false}
+        );
+
+        return Stream.concat(valid, invalid).collect(toList());
     }
 }

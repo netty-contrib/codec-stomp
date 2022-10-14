@@ -15,6 +15,6 @@
  */
 
 /**
- * <a href="https://en.wikipedia.org/wiki/Streaming_Text_Oriented_Messaging_Protocol">STOMP</a> codec
+ * <a href="https://stomp.github.io/">STOMP</a> codec.
  */
 package io.netty.contrib.handler.codec.stomp;

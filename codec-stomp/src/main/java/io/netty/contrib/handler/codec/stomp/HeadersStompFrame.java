@@ -15,9 +15,20 @@
  */
 package io.netty.contrib.handler.codec.stomp;
 
-import io.netty.handler.codec.DecoderResultProvider;
-
 /**
- * Defines a common interface for all {@link StompSubframe} implementations.
+ * An interface that defines a {@link FullStompFrame}'s command and headers.
+ *
+ * @see StompCommand
+ * @see StompHeaders
  */
-public interface StompSubframe extends DecoderResultProvider { }
+public interface HeadersStompFrame extends StompFrame {
+    /**
+     * Returns command of this frame.
+     */
+    StompCommand command();
+
+    /**
+     * Returns headers of this frame.
+     */
+    StompHeaders headers();
+}

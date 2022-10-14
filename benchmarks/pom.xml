@@ -35,8 +35,8 @@
         </dependency>
         <dependency>
             <groupId>io.netty</groupId>
-            <artifactId>netty-microbench</artifactId>
-            <version>${project.version}</version>
+            <artifactId>netty5-microbench</artifactId>
+            <version>${netty.version}</version>
         </dependency>
         <dependency>
             <groupId>org.openjdk.jmh</groupId>

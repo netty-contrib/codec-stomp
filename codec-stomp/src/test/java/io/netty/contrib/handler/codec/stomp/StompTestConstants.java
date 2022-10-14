@@ -18,7 +18,7 @@ package io.netty.contrib.handler.codec.stomp;
 public final class StompTestConstants {
     public static final String CONNECT_FRAME =
         "CONNECT\n" +
-            "host:stomp.github.org\n" +
+            "host:stomp.github.io\n" +
             "accept-version:1.1,1.2\n" +
             '\n' +
             '\0';
@@ -27,14 +27,14 @@ public final class StompTestConstants {
             "version:1.2\n" +
             '\n' +
             "\0\n";
-    public static final String SEND_FRAME_1 =
+    public static final String SEND_FRAME_WITHOUT_CONTENT_LENGTH =
         "SEND\n" +
             "destination:/queue/a\n" +
             "content-type:text/plain\n" +
             '\n' +
             "hello, queue a!" +
             "\0\n";
-    public static final String SEND_FRAME_2 =
+    public static final String SEND_FRAME_WITH_CONTENT_LENGTH =
         "SEND\n" +
             "destination:/queue/a\n" +
             "content-type:text/plain\n" +
@@ -42,20 +42,15 @@ public final class StompTestConstants {
             '\n' +
             "hello, queue a!!!" +
             "\0\n";
-    public static final String[] SEND_FRAMES_3 = {
-            "SEND\n" +
-                    "destination:/queue/a\n" +
-                    "content-type:text/plain\n" +
-                    '\n' +
-                    "first part of body\n",
+    public static final String[] SEND_FRAME_WITHOUT_CONTENT_LENGTH_PARTS = {
+            "SE",
+            "ND\ndestination:/queue/a\n",
+            "content-type",
+            ":text/plain",
+            "\n\n",
+            "first part of body\n",
             "second part of body\0"
     };
-
-    public static final String SEND_FRAME_4 = "SEND\n" +
-            "destination:/queue/a\n" +
-            "content-type:text/plain\n" +
-            '\n' +
-            "body\0";
 
     public static final String FRAME_WITH_INVALID_HEADER = "SEND\n" +
             "destination:/some-destination\n" +

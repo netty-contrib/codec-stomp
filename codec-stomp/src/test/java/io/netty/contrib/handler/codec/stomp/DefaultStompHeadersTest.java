@@ -15,9 +15,19 @@
  */
 package io.netty.contrib.handler.codec.stomp;
 
-import io.netty5.handler.codec.DecoderResultProvider;
+import org.junit.jupiter.api.Test;
 
-/**
- * Defines a common interface for all {@link StompFrame} implementations.
- */
-public interface StompFrame extends DecoderResultProvider { }
+import static org.assertj.core.api.Assertions.assertThat;
+
+class DefaultStompHeadersTest {
+    @Test
+    void shouldHaveCaseSensitiveHeaders() {
+        var headers = new DefaultStompHeaders();
+        String name = "header-name";
+        String value = "header-value";
+        headers.add(name, value);
+
+        assertThat(headers.get("Header-Name")).isNull();
+        assertThat(headers.get(name)).isEqualTo(value);
+    }
+}

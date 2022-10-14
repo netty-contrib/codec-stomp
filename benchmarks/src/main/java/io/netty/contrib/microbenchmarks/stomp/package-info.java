@@ -14,6 +14,6 @@
  * under the License.
  */
 /**
- * Benchmarks for {@link io.netty.handler.codec.stomp.StompSubframeEncoder}.
+ * Benchmarks for {@link io.netty.contrib.handler.codec.stomp.StompFrameEncoder}.
  */
 package io.netty.contrib.microbenchmarks.stomp;

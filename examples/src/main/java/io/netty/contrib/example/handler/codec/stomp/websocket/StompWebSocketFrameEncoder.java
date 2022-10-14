@@ -15,31 +15,25 @@
  */
 package io.netty.contrib.example.handler.codec.stomp.websocket;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
-import io.netty.handler.codec.http.websocketx.ContinuationWebSocketFrame;
-import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
-import io.netty.handler.codec.http.websocketx.WebSocketFrame;
-import io.netty.contrib.handler.codec.stomp.LastStompContentSubframe;
-import io.netty.contrib.handler.codec.stomp.StompContentSubframe;
-import io.netty.contrib.handler.codec.stomp.StompFrame;
-import io.netty.contrib.handler.codec.stomp.StompHeaders;
-import io.netty.contrib.handler.codec.stomp.StompHeadersSubframe;
-import io.netty.contrib.handler.codec.stomp.StompSubframe;
-import io.netty.contrib.handler.codec.stomp.StompSubframeEncoder;
+import io.netty.contrib.handler.codec.stomp.*;
+import io.netty5.buffer.Buffer;
+import io.netty5.channel.ChannelHandlerContext;
+import io.netty5.handler.codec.http.websocketx.BinaryWebSocketFrame;
+import io.netty5.handler.codec.http.websocketx.ContinuationWebSocketFrame;
+import io.netty5.handler.codec.http.websocketx.TextWebSocketFrame;
+import io.netty5.handler.codec.http.websocketx.WebSocketFrame;
 
 import java.util.List;
 
-public class StompWebSocketFrameEncoder extends StompSubframeEncoder {
+public class StompWebSocketFrameEncoder extends StompFrameEncoder {
 
     @Override
-    public void encode(ChannelHandlerContext ctx, StompSubframe msg, List<Object> out) throws Exception {
+    public void encode(ChannelHandlerContext ctx, StompFrame msg, List<Object> out) throws Exception {
         super.encode(ctx, msg, out);
     }
 
     @Override
-    protected WebSocketFrame convertFullFrame(StompFrame original, ByteBuf encoded) {
+    protected WebSocketFrame convertFullFrame(FullStompFrame original, Buffer encoded) {
         if (isTextFrame(original)) {
             return new TextWebSocketFrame(encoded);
         }
@@ -48,7 +42,7 @@ public class StompWebSocketFrameEncoder extends StompSubframeEncoder {
     }
 
     @Override
-    protected WebSocketFrame convertHeadersSubFrame(StompHeadersSubframe original, ByteBuf encoded) {
+    protected WebSocketFrame convertHeadersFrame(HeadersStompFrame original, Buffer encoded) {
         if (isTextFrame(original)) {
             return new TextWebSocketFrame(false, 0, encoded);
         }
@@ -57,16 +51,16 @@ public class StompWebSocketFrameEncoder extends StompSubframeEncoder {
     }
 
     @Override
-    protected WebSocketFrame convertContentSubFrame(StompContentSubframe original, ByteBuf encoded) {
-        if (original instanceof LastStompContentSubframe) {
+    protected WebSocketFrame convertContentFrame(ContentStompFrame<?> original, Buffer encoded) {
+        if (original instanceof LastContentStompFrame) {
             return new ContinuationWebSocketFrame(true, 0, encoded);
         }
 
         return new ContinuationWebSocketFrame(false, 0, encoded);
     }
 
-    private static boolean isTextFrame(StompHeadersSubframe headersSubframe) {
-        String contentType = headersSubframe.headers().getAsString(StompHeaders.CONTENT_TYPE);
+    private static boolean isTextFrame(HeadersStompFrame headersFrame) {
+        String contentType = headersFrame.headers().getAsString(StompHeaders.CONTENT_TYPE);
         return contentType != null && (contentType.startsWith("text") || contentType.startsWith("application/json"));
     }
 }

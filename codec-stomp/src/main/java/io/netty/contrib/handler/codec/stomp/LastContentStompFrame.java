@@ -16,19 +16,12 @@
 package io.netty.contrib.handler.codec.stomp;
 
 /**
- * An interface that defines a {@link StompFrame}'s command and headers.
- *
- * @see StompCommand
- * @see StompHeaders
+ * The last {@link ContentStompFrame} which signals the end of the content batch.
+ * <p/>
+ * Note, even when no content is emitted by the protocol, an
+ * empty {@link LastContentStompFrame} is issued to make the upstream parsing
+ * easier.
  */
-public interface StompHeadersSubframe extends StompSubframe {
-    /**
-     * Returns command of this frame.
-     */
-    StompCommand command();
+public interface LastContentStompFrame<R extends ContentStompFrame<R>> extends ContentStompFrame<R> {
 
-    /**
-     * Returns headers of this frame.
-     */
-    StompHeaders headers();
 }

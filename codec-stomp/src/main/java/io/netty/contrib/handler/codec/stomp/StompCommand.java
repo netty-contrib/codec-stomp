@@ -16,9 +16,10 @@
 package io.netty.contrib.handler.codec.stomp;
 
 /**
- * STOMP command
+ * STOMP commands.
  */
 public enum StompCommand {
+
     STOMP,
     CONNECT,
     CONNECTED,
