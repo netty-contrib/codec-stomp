@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 The Netty Project
+ * Copyright 2022 The Netty Project
  *
  * The Netty Project licenses this file to you under the Apache License,
  * version 2.0 (the "License"); you may not use this file except in compliance
@@ -34,11 +34,11 @@ import static io.netty5.buffer.DefaultBufferAllocators.offHeapAllocator;
 import static io.netty5.buffer.DefaultBufferAllocators.onHeapAllocator;
 
 @State(Scope.Benchmark)
-@Fork(value = 1)
+@Fork(value = 2)
 @Threads(1)
-@Warmup(iterations = 2)
-@Measurement(iterations = 3)
-public class StompEncoderBenchmark extends AbstractMicrobenchmark {
+@Warmup(iterations = 5)
+@Measurement(iterations = 10)
+public class StompFrameEncoderBenchmark extends AbstractMicrobenchmark {
 
     private StompFrameEncoder stompEncoder;
     private Supplier<Buffer> contentSupplier;
@@ -49,7 +49,7 @@ public class StompEncoderBenchmark extends AbstractMicrobenchmark {
     public boolean offHeapAllocator;
 
     @Param
-    public ExampleStompHeadersSubframe.HeadersType headersType;
+    public ExampleHeadersStompFrame.HeadersType headersType;
 
     @Param({"0", "10", "100", "1000", "3000"})
     public int contentLength;
@@ -61,7 +61,7 @@ public class StompEncoderBenchmark extends AbstractMicrobenchmark {
         BufferAllocator allocator = offHeapAllocator ? offHeapAllocator() : onHeapAllocator();
         contentSupplier = allocator.constBufferSupplier(bytes);
 
-        headersFrame = ExampleStompHeadersSubframe.EXAMPLES.get(headersType);
+        headersFrame = ExampleHeadersStompFrame.EXAMPLES.get(headersType);
 
         stompEncoder = new StompFrameEncoder();
         context = new EmbeddedChannelWriteReleaseHandlerContext(allocator, stompEncoder) {
@@ -79,7 +79,7 @@ public class StompEncoderBenchmark extends AbstractMicrobenchmark {
     }
 
     @Benchmark
-    public void writeStompFrame() {
+    public void writeFullStompFrame() {
         context.executor().execute(() ->
                 stompEncoder.write(context, new DefaultFullStompFrame(headersFrame.command(),
                         contentSupplier.get(), headersFrame.headers())

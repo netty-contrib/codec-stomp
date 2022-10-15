@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 The Netty Project
+ * Copyright 2022 The Netty Project
  *
  * The Netty Project licenses this file to you under the Apache License,
  * version 2.0 (the "License"); you may not use this file except in compliance
@@ -24,7 +24,7 @@ import java.util.EnumMap;
 import java.util.Map;
 import java.util.UUID;
 
-public final class ExampleStompHeadersSubframe {
+public final class ExampleHeadersStompFrame {
 
     public enum HeadersType {
         ONE,
@@ -101,6 +101,6 @@ public final class ExampleStompHeadersSubframe {
         EXAMPLES.put(HeadersType.TWENTY, headersSubframe);
     }
 
-    private ExampleStompHeadersSubframe() {
+    private ExampleHeadersStompFrame() {
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 The Netty Project
+ * Copyright 2022 The Netty Project
  *
  * The Netty Project licenses this file to you under the Apache License,
  * version 2.0 (the "License"); you may not use this file except in compliance
@@ -74,8 +74,8 @@ public class StompFrameAggregator<C extends ContentStompFrame<C>>
     }
 
     @Override
-    protected boolean isContentLengthInvalid(HeadersStompFrame headersFrame, int i) {
-        return (int) Math.min(Integer.MAX_VALUE, headersFrame.headers().getLong(StompHeaders.CONTENT_LENGTH, -1)) > maxContentLength();
+    protected boolean isContentLengthInvalid(HeadersStompFrame headersFrame, int maxContentLength) {
+        return headersFrame.headers().getLong(StompHeaders.CONTENT_LENGTH, -1L) > maxContentLength;
     }
 
     @Override

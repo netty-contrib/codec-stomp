@@ -37,7 +37,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class StompChatHandler extends SimpleChannelInboundHandler<FullStompFrame> {
 
-    private final ConcurrentMap<String, Set<StompSubscription>> chatDestinations = new ConcurrentHashMap<String, Set<StompSubscription>>();
+    private final ConcurrentMap<String, Set<StompSubscription>> chatDestinations = new ConcurrentHashMap<>();
 
     @Override
     public boolean isSharable() {
