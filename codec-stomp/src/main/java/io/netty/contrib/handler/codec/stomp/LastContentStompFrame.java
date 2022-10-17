@@ -17,7 +17,7 @@ package io.netty.contrib.handler.codec.stomp;
 
 /**
  * The last {@link ContentStompFrame} which signals the end of the content batch.
- * <p/>
+ * <p>
  * Note, even when no content is emitted by the protocol, an
  * empty {@link LastContentStompFrame} is issued to make the upstream parsing
  * easier.
