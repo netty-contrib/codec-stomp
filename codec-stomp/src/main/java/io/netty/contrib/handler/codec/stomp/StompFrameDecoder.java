@@ -155,7 +155,7 @@ public class StompFrameDecoder extends ByteToMessageDecoder {
                             toRead = remainingLength;
                         }
 
-                        Buffer chunkBuffer = in.split(in.readerOffset() + toRead);
+                        Buffer chunkBuffer = in.readSplit(toRead);
                         if ((alreadyReadChunkSize += toRead) >= contentLength) {
                             lastContentFrame = new DefaultLastContentStompFrame(chunkBuffer);
                             state = State.FINALIZE_FRAME_READ;
@@ -172,7 +172,7 @@ public class StompFrameDecoder extends ByteToMessageDecoder {
                                 toRead = in.readableBytes();
                             }
 
-                            Buffer chunkBuffer = in.split(in.readerOffset() + toRead);
+                            Buffer chunkBuffer = in.readSplit(toRead);
                             alreadyReadChunkSize += toRead;
                             if (beforeNull < 0) {
                                 ctx.fireChannelRead(new DefaultContentStompFrame(chunkBuffer));
