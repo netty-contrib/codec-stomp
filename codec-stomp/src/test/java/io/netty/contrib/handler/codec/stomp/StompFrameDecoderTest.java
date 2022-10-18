@@ -21,11 +21,11 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.Map;
-
 import static io.netty.contrib.handler.codec.stomp.StompTestConstants.*;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Map.entry;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class StompFrameDecoderTest {
 
@@ -180,8 +180,8 @@ public class StompFrameDecoderTest {
                 .isEqualTo(StompCommand.SEND);
         assertThat(headersFrame.headers())
                 .containsExactly(
-                        Map.entry("destination", "/some-destination"),
-                        Map.entry("content-type", "text/plain"));
+                        entry("destination", "/some-destination"),
+                        entry("content-type", "text/plain"));
 
         try (ContentStompFrame<?> content = channel.readInbound()) {
             assertThat(content.payload().toString(UTF_8)).isEqualTo("some body");
@@ -239,8 +239,8 @@ public class StompFrameDecoderTest {
         assertThat(headersFrame.decoderResult().isFailure()).isFalse();
         assertThat(headersFrame.headers())
                 .containsExactly(
-                        Map.entry("destination", "/queue/№11±♛нетти♕"),
-                        Map.entry("content-type", "text/plain"));
+                        entry("destination", "/queue/№11±♛нетти♕"),
+                        entry("content-type", "text/plain"));
 
         try (LastContentStompFrame<?> content = channel.readInbound()) {
             assertThat(content.payload().toString(UTF_8)).isEqualTo("body");
@@ -248,7 +248,7 @@ public class StompFrameDecoderTest {
     }
 
     @Test
-    void shouldSetFailureWhenContentLengthOrNullEndingIsMissing() {
+    void shouldSetFailureWhenNullEndingIsMissing() {
         Buffer incoming = channel.bufferAllocator().copyOf(FRAME_WITHOUT_NULL_ENDING.getBytes(UTF_8));
         assertThat(channel.writeInbound(incoming)).isTrue();
 
@@ -263,5 +263,96 @@ public class StompFrameDecoderTest {
             assertThat(lastContent.decoderResult().cause())
                     .hasMessage("Unexpected byte in buffer 1 while expecting NULL byte");
         }
+    }
+
+    @Test
+    void shouldUnescapeFrameWhenEscaped() {
+        byte[] source = StompTestConstants.ESCAPED_MESSAGE_FRAME.getBytes(UTF_8);
+        Buffer incoming = channel.bufferAllocator().copyOf(source);
+        assertTrue(channel.writeInbound(incoming));
+
+        HeadersStompFrame headersFrame = channel.readInbound();
+        assertThat(headersFrame).isNotNull();
+        assertThat(headersFrame.decoderResult().isFailure()).isFalse();
+        assertThat(headersFrame.headers()).hasSize(6)
+                .containsExactlyInAnyOrder(
+                        entry("message-id", "100"),
+                        entry("subscription", "1"),
+                        entry("destination", "/queue/a:"),
+                        entry("header\\\r\n:Name", "header\\\r\n:Value"),
+                        entry("header_\\_\r_\n_:_Name", "header_\\_\r_\n_:_Value"),
+                        entry("headerName:", ":headerValue"));
+
+        try (LastContentStompFrame<?> contentFrame = channel.readInbound();
+             var expectedLastFrame = new EmptyLastContentStompFrame(channel.bufferAllocator())) {
+            assertThat(contentFrame).isEqualTo(expectedLastFrame);
+        }
+
+        assertThat((Object) channel.readInbound()).isNull();
+    }
+
+    @Test
+    void shouldNotUnescapeFrameWhenConnectCommand() {
+        String sourceConnectFrame = "CONNECT\n"
+                + "headerName-\\\\:headerValue-\\\\\n"
+                + "\n\0";
+
+        Buffer incoming = channel.bufferAllocator().copyOf(sourceConnectFrame.getBytes(UTF_8));
+        assertTrue(channel.writeInbound(incoming));
+
+        HeadersStompFrame headersFrame = channel.readInbound();
+        assertThat(headersFrame).isNotNull();
+        assertThat(headersFrame.decoderResult().isFailure()).isFalse();
+        assertThat(headersFrame.headers()).hasSize(1)
+                .containsExactlyInAnyOrder(entry("headerName-\\\\", "headerValue-\\\\"));
+
+        try (LastContentStompFrame<?> contentFrame = channel.readInbound();
+             var expectedLastFrame = new EmptyLastContentStompFrame(channel.bufferAllocator())) {
+            assertThat(contentFrame).isEqualTo(expectedLastFrame);
+        }
+
+        assertThat((Object) channel.readInbound()).isNull();
+    }
+
+    @Test
+    void shouldNotUnescapeFrameWhenConnectedCommand() {
+        String sourceConnectedFrame = "CONNECTED\n"
+                + "headerName-\\\\:headerValue-\\\\\n"
+                + "\n\0";
+
+        Buffer incoming = channel.bufferAllocator().copyOf(sourceConnectedFrame.getBytes(UTF_8));
+        assertTrue(channel.writeInbound(incoming));
+
+        HeadersStompFrame headersFrame = channel.readInbound();
+        assertThat(headersFrame).isNotNull();
+        assertThat(headersFrame.decoderResult().isFailure()).isFalse();
+        assertThat(headersFrame.headers()).hasSize(1)
+                .containsExactlyInAnyOrder(entry("headerName-\\\\", "headerValue-\\\\"));
+
+        try (LastContentStompFrame<?> contentFrame = channel.readInbound();
+             var expectedLastFrame = new EmptyLastContentStompFrame(channel.bufferAllocator())) {
+            assertThat(contentFrame).isEqualTo(expectedLastFrame);
+        }
+
+        assertThat((Object) channel.readInbound()).isNull();
+    }
+
+    @Test
+    void shouldSetFailureWhenInvalidEscapedFrame() {
+        assertThat(channel.pipeline().removeIfExists(StompFrameDecoder.class)).isNotNull();
+        channel.pipeline().addLast(new StompFrameDecoder(true));
+
+        byte[] source = INVALID_ESCAPED_MESSAGE_FRAME.getBytes(UTF_8);
+        Buffer incoming = channel.bufferAllocator().copyOf(source);
+        assertTrue(channel.writeInbound(incoming));
+
+
+        HeadersStompFrame headersFrame = channel.readInbound();
+        assertThat(headersFrame).isNotNull();
+        assertThat(headersFrame.decoderResult().isFailure()).isTrue();
+        assertThat(headersFrame.decoderResult().cause())
+                .hasMessage("received an invalid escape header sequence 'custom_invalid\\t'");
+
+        assertThat((Object) channel.readInbound()).isNull();
     }
 }
