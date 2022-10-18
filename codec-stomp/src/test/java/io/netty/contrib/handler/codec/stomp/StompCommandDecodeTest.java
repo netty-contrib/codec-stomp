@@ -58,8 +58,9 @@ class StompCommandDecodeTest {
 
         if (valid) {
             assertThat(headersFrame.decoderResult().isSuccess()).isTrue();
-            try (ContentStompFrame<?> lastContent = channel.readInbound()) {
-                assertThat(lastContent).isEqualTo(new EmptyLastContentStompFrame(channel.bufferAllocator()));
+            try (ContentStompFrame<?> lastContent = channel.readInbound();
+                 var expectedLastFrame = new EmptyLastContentStompFrame(channel.bufferAllocator())) {
+                assertThat(lastContent).isEqualTo(expectedLastFrame);
             }
         } else {
             assertThat(headersFrame.decoderResult().isFailure()).isTrue();

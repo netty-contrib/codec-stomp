@@ -52,8 +52,9 @@ public class StompFrameDecoderTest {
                 .extracting(HeadersStompFrame::command)
                 .isEqualTo(StompCommand.CONNECT);
 
-        try (ContentStompFrame<?> contentFrame = channel.readInbound()) {
-            assertThat(contentFrame).isEqualTo(new EmptyLastContentStompFrame(channel.bufferAllocator()));
+        try (ContentStompFrame<?> contentFrame = channel.readInbound();
+             var expectedLastFrame = new EmptyLastContentStompFrame(channel.bufferAllocator())) {
+            assertThat(contentFrame).isEqualTo(expectedLastFrame);
         }
 
         assertThat((Object) channel.readInbound()).isNull();
@@ -150,8 +151,9 @@ public class StompFrameDecoderTest {
                 .extracting(HeadersStompFrame::command)
                 .isEqualTo(StompCommand.CONNECT);
 
-        try (ContentStompFrame<?> content = channel.readInbound()) {
-            assertThat(content).isEqualTo(new EmptyLastContentStompFrame(channel.bufferAllocator()));
+        try (ContentStompFrame<?> content = channel.readInbound();
+             var expectedLastFrame = new EmptyLastContentStompFrame(channel.bufferAllocator())) {
+            assertThat(content).isEqualTo(expectedLastFrame);
         }
 
         HeadersStompFrame headersFrame2 = channel.readInbound();
@@ -159,8 +161,9 @@ public class StompFrameDecoderTest {
                 .extracting(HeadersStompFrame::command)
                 .isEqualTo(StompCommand.CONNECTED);
 
-        try (ContentStompFrame<?> content2 = channel.readInbound()) {
-            assertThat(content2).isEqualTo(new EmptyLastContentStompFrame(channel.bufferAllocator()));
+        try (ContentStompFrame<?> content2 = channel.readInbound();
+             var expectedLastFrame = new EmptyLastContentStompFrame(channel.bufferAllocator())) {
+            assertThat(content2).isEqualTo(expectedLastFrame);
         }
 
         assertThat((Object) channel.readInbound()).isNull();
