@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 The Netty Project
+ * Copyright 2022 The Netty Project
  *
  * The Netty Project licenses this file to you under the Apache License,
  * version 2.0 (the "License"); you may not use this file except in compliance
@@ -15,34 +15,9 @@
  */
 package io.netty.contrib.handler.codec.stomp;
 
-import io.netty.buffer.ByteBuf;
+import io.netty5.handler.codec.DecoderResultProvider;
 
 /**
- * Combines {@link StompHeadersSubframe} and {@link LastStompContentSubframe} into one
- * frame. So it represents a <i>complete</i> STOMP frame.
+ * Defines a common interface for all {@link StompFrame} implementations.
  */
-public interface StompFrame extends StompHeadersSubframe, LastStompContentSubframe {
-    @Override
-    StompFrame copy();
-
-    @Override
-    StompFrame duplicate();
-
-    @Override
-    StompFrame retainedDuplicate();
-
-    @Override
-    StompFrame replace(ByteBuf content);
-
-    @Override
-    StompFrame retain();
-
-    @Override
-    StompFrame retain(int increment);
-
-    @Override
-    StompFrame touch();
-
-    @Override
-    StompFrame touch(Object hint);
-}
+public interface StompFrame extends DecoderResultProvider { }

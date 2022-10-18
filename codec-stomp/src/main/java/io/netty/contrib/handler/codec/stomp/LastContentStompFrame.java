@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 The Netty Project
+ * Copyright 2022 The Netty Project
  *
  * The Netty Project licenses this file to you under the Apache License,
  * version 2.0 (the "License"); you may not use this file except in compliance
@@ -13,7 +13,15 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
+package io.netty.contrib.handler.codec.stomp;
+
 /**
- * Benchmarks for {@link io.netty.contrib.handler.codec.stomp.StompFrameEncoder}.
+ * The last {@link ContentStompFrame} which signals the end of the content batch.
+ * <p>
+ * Note, even when no content is emitted by the protocol, an
+ * empty {@link LastContentStompFrame} is issued to make the upstream parsing
+ * easier.
  */
-package io.netty.contrib.microbenchmarks.stomp;
+public interface LastContentStompFrame<R extends ContentStompFrame<R>> extends ContentStompFrame<R> {
+
+}

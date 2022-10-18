@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 The Netty Project
+ * Copyright 2022 The Netty Project
  *
  * The Netty Project licenses this file to you under the Apache License,
  * version 2.0 (the "License"); you may not use this file except in compliance
@@ -15,104 +15,42 @@
  */
 package io.netty.contrib.handler.codec.stomp;
 
+import io.netty5.handler.codec.DecoderResult;
+
+import java.util.Objects;
+
 import static java.util.Objects.requireNonNull;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
-import io.netty.util.CharsetUtil;
+public abstract class DefaultStompFrame implements StompFrame {
 
-/**
- * Default implementation of {@link StompFrame}.
- */
-public class DefaultStompFrame extends DefaultStompHeadersSubframe implements StompFrame {
+    private DecoderResult decoderResult = DecoderResult.success();
 
-    private final ByteBuf content;
-
-    public DefaultStompFrame(StompCommand command) {
-        this(command, Unpooled.buffer(0));
-    }
-
-    public DefaultStompFrame(StompCommand command, ByteBuf content) {
-        this(command, content, null);
-    }
-
-    DefaultStompFrame(StompCommand command, ByteBuf content, DefaultStompHeaders headers) {
-        super(command, headers);
-        requireNonNull(content, "content");
-
-        this.content = content;
+    @Override
+    public DecoderResult decoderResult() {
+        return decoderResult;
     }
 
     @Override
-    public ByteBuf content() {
-        return content;
+    public void setDecoderResult(DecoderResult decoderResult) {
+        this.decoderResult = requireNonNull(decoderResult, "decoderResult");
     }
 
     @Override
-    public StompFrame copy() {
-        return replace(content.copy());
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+
+        DefaultStompFrame that = (DefaultStompFrame) obj;
+        return Objects.equals(decoderResult, that.decoderResult);
     }
 
     @Override
-    public StompFrame duplicate() {
-        return replace(content.duplicate());
-    }
-
-    @Override
-    public StompFrame retainedDuplicate() {
-        return replace(content.retainedDuplicate());
-    }
-
-    @Override
-    public StompFrame replace(ByteBuf content) {
-        return new DefaultStompFrame(command, content, headers.copy());
-    }
-
-    @Override
-    public int refCnt() {
-        return content.refCnt();
-    }
-
-    @Override
-    public StompFrame retain() {
-        content.retain();
-        return this;
-    }
-
-    @Override
-    public StompFrame retain(int increment) {
-        content.retain(increment);
-        return this;
-    }
-
-    @Override
-    public StompFrame touch() {
-        content.touch();
-        return this;
-    }
-
-    @Override
-    public StompFrame touch(Object hint) {
-        content.touch(hint);
-        return this;
-    }
-
-    @Override
-    public boolean release() {
-        return content.release();
-    }
-
-    @Override
-    public boolean release(int decrement) {
-        return content.release(decrement);
-    }
-
-    @Override
-    public String toString() {
-        return "DefaultStompFrame{" +
-            "command=" + command +
-            ", headers=" + headers +
-            ", content=" + content.toString(CharsetUtil.UTF_8) +
-            '}';
+    public int hashCode() {
+        return decoderResult != null ? decoderResult.hashCode() : 0;
     }
 }

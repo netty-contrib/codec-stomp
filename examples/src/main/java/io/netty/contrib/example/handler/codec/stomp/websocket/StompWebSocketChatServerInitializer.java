@@ -15,11 +15,11 @@
  */
 package io.netty.contrib.example.handler.codec.stomp.websocket;
 
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.socket.SocketChannel;
-import io.netty.handler.codec.http.HttpObjectAggregator;
-import io.netty.handler.codec.http.HttpServerCodec;
-import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
+import io.netty5.channel.ChannelInitializer;
+import io.netty5.channel.socket.SocketChannel;
+import io.netty5.handler.codec.http.HttpObjectAggregator;
+import io.netty5.handler.codec.http.HttpServerCodec;
+import io.netty5.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
 
 import java.util.Objects;
 

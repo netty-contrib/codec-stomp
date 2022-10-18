@@ -15,8 +15,8 @@
  */
 package io.netty.contrib.example.handler.codec.stomp.websocket;
 
-import io.netty.util.AttributeKey;
-import io.netty.util.internal.StringUtil;
+import io.netty5.util.AttributeKey;
+import io.netty5.util.internal.StringUtil;
 
 import java.util.ArrayList;
 import java.util.List;

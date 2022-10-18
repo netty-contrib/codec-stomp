@@ -15,10 +15,11 @@
  */
 package io.netty.contrib.example.handler.codec.stomp.websocket;
 
-import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.MultithreadEventLoopGroup;
-import io.netty.channel.nio.NioHandler;
-import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty5.bootstrap.ServerBootstrap;
+import io.netty5.channel.Channel;
+import io.netty5.channel.MultithreadEventLoopGroup;
+import io.netty5.channel.nio.NioHandler;
+import io.netty5.channel.socket.nio.NioServerSocketChannel;
 
 public class StompWebSocketChatServer {
 
@@ -32,13 +33,14 @@ public class StompWebSocketChatServer {
                     .group(boosGroup, workerGroup)
                     .channel(NioServerSocketChannel.class)
                     .childHandler(new StompWebSocketChatServerInitializer("/chat"));
-            bootstrap.bind(port).addListener(future -> {
+            Channel channel = bootstrap.bind(port).addListener(future -> {
                 if (future.isSuccess()) {
                     System.out.println("Open your web browser and navigate to http://127.0.0.1:" + PORT + '/');
                 } else {
                     System.out.println("Cannot start server, follows exception " + future.cause());
                 }
-            }).get().closeFuture().sync();
+            }).asStage().get();
+            channel.closeFuture().asStage().sync();
         } finally {
             boosGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();

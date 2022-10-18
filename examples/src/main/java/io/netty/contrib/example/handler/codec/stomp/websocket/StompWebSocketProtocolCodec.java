@@ -15,54 +15,54 @@
  */
 package io.netty.contrib.example.handler.codec.stomp.websocket;
 
-import io.netty.channel.ChannelHandler.Sharable;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.MessageToMessageCodec;
-import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
-import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
-import io.netty.handler.codec.http.websocketx.WebSocketFrame;
-import io.netty.handler.codec.http.websocketx.WebSocketFrameAggregator;
-import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
-import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler.HandshakeComplete;
-import io.netty.contrib.handler.codec.stomp.StompSubframe;
-import io.netty.contrib.handler.codec.stomp.StompSubframeAggregator;
-import io.netty.contrib.handler.codec.stomp.StompSubframeDecoder;
+import io.netty.contrib.handler.codec.stomp.StompFrame;
+import io.netty.contrib.handler.codec.stomp.StompFrameAggregator;
+import io.netty.contrib.handler.codec.stomp.StompFrameDecoder;
+import io.netty5.channel.ChannelHandlerContext;
+import io.netty5.handler.codec.MessageToMessageCodec;
+import io.netty5.handler.codec.http.websocketx.*;
 
 import java.util.List;
 
-@Sharable
-public class StompWebSocketProtocolCodec extends MessageToMessageCodec<WebSocketFrame, StompSubframe> {
+public class StompWebSocketProtocolCodec extends MessageToMessageCodec<WebSocketFrame, StompFrame> {
 
     private final StompChatHandler stompChatHandler = new StompChatHandler();
     private final StompWebSocketFrameEncoder stompWebSocketFrameEncoder = new StompWebSocketFrameEncoder();
 
     @Override
-    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
-        if (evt instanceof WebSocketServerProtocolHandler.HandshakeComplete) {
-            StompVersion stompVersion = StompVersion.findBySubProtocol(((HandshakeComplete) evt).selectedSubprotocol());
+    public boolean isSharable() {
+        return true;
+    }
+
+    @Override
+    public void channelInboundEvent(ChannelHandlerContext ctx, Object event) throws Exception {
+        if (event instanceof WebSocketServerHandshakeCompletionEvent) {
+            StompVersion stompVersion = StompVersion.findBySubProtocol(((WebSocketServerHandshakeCompletionEvent) event).selectedSubprotocol());
             ctx.channel().attr(StompVersion.CHANNEL_ATTRIBUTE_KEY).set(stompVersion);
             ctx.pipeline()
-               .addLast(new WebSocketFrameAggregator(65536))
-               .addLast(new StompSubframeDecoder())
-               .addLast(new StompSubframeAggregator(65536))
-               .addLast(stompChatHandler)
-               .remove(StompWebSocketClientPageHandler.INSTANCE);
+                .addLast(new WebSocketFrameAggregator(65536))
+                .addLast(new StompFrameDecoder())
+                .addLast(new StompFrameAggregator<>(65536))
+                .addLast(stompChatHandler)
+                .remove(StompWebSocketClientPageHandler.INSTANCE);
         } else {
-            super.userEventTriggered(ctx, evt);
+            super.channelInboundEvent(ctx, event);
         }
     }
 
     @Override
-    protected void encode(ChannelHandlerContext ctx, StompSubframe stompFrame, List<Object> out) throws Exception {
+    protected void encode(ChannelHandlerContext ctx, StompFrame stompFrame, List<Object> out) throws Exception {
         stompWebSocketFrameEncoder.encode(ctx, stompFrame, out);
     }
 
     @Override
-    protected void decode(ChannelHandlerContext ctx, WebSocketFrame webSocketFrame) {
+    protected void decodeAndClose(ChannelHandlerContext ctx, WebSocketFrame webSocketFrame) {
         if (webSocketFrame instanceof TextWebSocketFrame || webSocketFrame instanceof BinaryWebSocketFrame) {
-            ctx.fireChannelRead(webSocketFrame.content().retain());
+            ctx.fireChannelRead(webSocketFrame.binaryData());
         } else {
-            ctx.close();
+            try (webSocketFrame) {
+                ctx.close();
+            }
         }
     }
 }

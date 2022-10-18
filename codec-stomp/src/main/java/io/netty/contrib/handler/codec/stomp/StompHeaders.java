@@ -15,8 +15,8 @@
  */
 package io.netty.contrib.handler.codec.stomp;
 
-import io.netty.handler.codec.Headers;
-import io.netty.util.AsciiString;
+import io.netty5.handler.codec.Headers;
+import io.netty5.util.AsciiString;
 
 import java.util.Iterator;
 import java.util.List;
@@ -50,6 +50,7 @@ public interface StompHeaders extends Headers<CharSequence, CharSequence, StompH
 
     /**
      * {@link Headers#get(Object)} and convert the result to a {@link String}.
+     *
      * @param name the name of the header to retrieve
      * @return the first header value if the header is found. {@code null} if there's no such header.
      */
@@ -57,6 +58,7 @@ public interface StompHeaders extends Headers<CharSequence, CharSequence, StompH
 
     /**
      * {@link Headers#getAll(Object)} and convert each element of {@link List} to a {@link String}.
+     *
      * @param name the name of the header to retrieve
      * @return a {@link List} of header values or an empty {@link List} if no values are found.
      */
@@ -71,10 +73,18 @@ public interface StompHeaders extends Headers<CharSequence, CharSequence, StompH
      * Returns {@code true} if a header with the {@code name} and {@code value} exists, {@code false} otherwise.
      * <p>
      * If {@code ignoreCase} is {@code true} then a case insensitive compare is done on the value.
-     * @param name the name of the header to find
-     * @param value the value of the header to find
+     *
+     * @param name       the name of the header to find
+     * @param value      the value of the header to find
      * @param ignoreCase {@code true} then a case insensitive compare is run to compare values.
-     * otherwise a case sensitive compare is run to compare values.
+     *                   otherwise a case sensitive compare is run to compare values.
      */
     boolean contains(CharSequence name, CharSequence value, boolean ignoreCase);
+
+    /**
+     * Create an independent copy of these STOMP headers.
+     *
+     * @return A new headers instance, with the same contents as this one.
+     */
+    StompHeaders copy();
 }

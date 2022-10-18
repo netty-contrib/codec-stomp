@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 The Netty Project
+ * Copyright 2022 The Netty Project
  *
  * The Netty Project licenses this file to you under the Apache License,
  * version 2.0 (the "License"); you may not use this file except in compliance
@@ -16,19 +16,9 @@
 package io.netty.contrib.handler.codec.stomp;
 
 /**
- * An interface that defines a {@link StompFrame}'s command and headers.
- *
- * @see StompCommand
- * @see StompHeaders
+ * Combines {@link HeadersStompFrame} and {@link LastContentStompFrame} into one
+ * frame. So it represents a <i>complete</i> STOMP frame.
  */
-public interface StompHeadersSubframe extends StompSubframe {
-    /**
-     * Returns command of this frame.
-     */
-    StompCommand command();
+public interface FullStompFrame extends HeadersStompFrame, LastContentStompFrame<FullStompFrame> {
 
-    /**
-     * Returns headers of this frame.
-     */
-    StompHeaders headers();
 }

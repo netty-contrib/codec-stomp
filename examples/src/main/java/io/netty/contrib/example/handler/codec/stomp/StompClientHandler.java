@@ -15,17 +15,17 @@
  */
 package io.netty.contrib.example.handler.codec.stomp;
 
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.contrib.handler.codec.stomp.DefaultStompFrame;
+import io.netty5.channel.ChannelHandlerContext;
+import io.netty5.channel.SimpleChannelInboundHandler;
+import io.netty.contrib.handler.codec.stomp.DefaultFullStompFrame;
 import io.netty.contrib.handler.codec.stomp.StompCommand;
-import io.netty.contrib.handler.codec.stomp.StompFrame;
+import io.netty.contrib.handler.codec.stomp.FullStompFrame;
 import io.netty.contrib.handler.codec.stomp.StompHeaders;
 
 /**
  * STOMP client inbound handler implementation, which just passes received messages to listener
  */
-public class StompClientHandler extends SimpleChannelInboundHandler<StompFrame> {
+public class StompClientHandler extends SimpleChannelInboundHandler<FullStompFrame> {
 
     private enum ClientState {
         AUTHENTICATING,
@@ -37,26 +37,28 @@ public class StompClientHandler extends SimpleChannelInboundHandler<StompFrame> 
     private ClientState state;
 
     @Override
-    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+    public void channelActive(ChannelHandlerContext ctx) {
         state = ClientState.AUTHENTICATING;
-        StompFrame connFrame = new DefaultStompFrame(StompCommand.CONNECT);
-        connFrame.headers().set(StompHeaders.ACCEPT_VERSION, "1.2");
-        connFrame.headers().set(StompHeaders.HOST, StompClient.HOST);
-        connFrame.headers().set(StompHeaders.LOGIN, StompClient.LOGIN);
-        connFrame.headers().set(StompHeaders.PASSCODE, StompClient.PASSCODE);
+        FullStompFrame connFrame = new DefaultFullStompFrame(StompCommand.CONNECT);
+        connFrame.headers().set(StompHeaders.ACCEPT_VERSION, "1.2")
+                .set(StompHeaders.HOST, StompClient.HOST)
+                .set(StompHeaders.LOGIN, StompClient.LOGIN)
+                .set(StompHeaders.PASSCODE, StompClient.PASSCODE);
+
         ctx.writeAndFlush(connFrame);
     }
 
     @Override
-    protected void messageReceived(ChannelHandlerContext ctx, StompFrame frame) throws Exception {
+    protected void messageReceived(ChannelHandlerContext ctx, FullStompFrame frame) throws Exception {
         String subscrReceiptId = "001";
         String disconReceiptId = "002";
         switch (frame.command()) {
             case CONNECTED:
-                StompFrame subscribeFrame = new DefaultStompFrame(StompCommand.SUBSCRIBE);
-                subscribeFrame.headers().set(StompHeaders.DESTINATION, StompClient.TOPIC);
-                subscribeFrame.headers().set(StompHeaders.RECEIPT, subscrReceiptId);
-                subscribeFrame.headers().set(StompHeaders.ID, "1");
+                FullStompFrame subscribeFrame = new DefaultFullStompFrame(StompCommand.SUBSCRIBE);
+                subscribeFrame.headers()
+                        .set(StompHeaders.DESTINATION, StompClient.TOPIC)
+                        .set(StompHeaders.RECEIPT, subscrReceiptId)
+                        .set(StompHeaders.ID, "1");
                 System.out.println("connected, sending subscribe frame: " + subscribeFrame);
                 state = ClientState.AUTHENTICATED;
                 ctx.writeAndFlush(subscribeFrame);
@@ -64,9 +66,10 @@ public class StompClientHandler extends SimpleChannelInboundHandler<StompFrame> 
             case RECEIPT:
                 String receiptHeader = frame.headers().getAsString(StompHeaders.RECEIPT_ID);
                 if (state == ClientState.AUTHENTICATED && receiptHeader.equals(subscrReceiptId)) {
-                    StompFrame msgFrame = new DefaultStompFrame(StompCommand.SEND);
+                    FullStompFrame msgFrame = new DefaultFullStompFrame(StompCommand.SEND,
+                            ctx.bufferAllocator().allocate(128));
                     msgFrame.headers().set(StompHeaders.DESTINATION, StompClient.TOPIC);
-                    msgFrame.content().writeBytes("some payload".getBytes());
+                    msgFrame.payload().writeBytes("some payload".getBytes());
                     System.out.println("subscribed, sending message frame: " + msgFrame);
                     state = ClientState.SUBSCRIBED;
                     ctx.writeAndFlush(msgFrame);
@@ -80,11 +83,11 @@ public class StompClientHandler extends SimpleChannelInboundHandler<StompFrame> 
             case MESSAGE:
                 if (state == ClientState.SUBSCRIBED) {
                     System.out.println("received frame: " + frame);
-                    StompFrame disconnFrame = new DefaultStompFrame(StompCommand.DISCONNECT);
-                    disconnFrame.headers().set(StompHeaders.RECEIPT, disconReceiptId);
-                    System.out.println("sending disconnect frame: " + disconnFrame);
+                    FullStompFrame disconnectFrame = new DefaultFullStompFrame(StompCommand.DISCONNECT);
+                    disconnectFrame.headers().set(StompHeaders.RECEIPT, disconReceiptId);
+                    System.out.println("sending disconnect frame: " + disconnectFrame);
                     state = ClientState.DISCONNECTING;
-                    ctx.writeAndFlush(disconnFrame);
+                    ctx.writeAndFlush(disconnectFrame);
                 }
                 break;
             default:
@@ -93,7 +96,7 @@ public class StompClientHandler extends SimpleChannelInboundHandler<StompFrame> 
     }
 
     @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+    public void channelExceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         cause.printStackTrace();
         ctx.close();
     }

@@ -15,19 +15,18 @@
  */
 package io.netty.contrib.handler.codec.stomp;
 
+import io.netty5.handler.codec.CharSequenceValueConverter;
+import io.netty5.handler.codec.DefaultHeaders;
+import io.netty5.handler.codec.HeadersUtils;
+
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 
-import io.netty.handler.codec.CharSequenceValueConverter;
-import io.netty.handler.codec.DefaultHeaders;
-import io.netty.handler.codec.HeadersUtils;
+import static io.netty5.util.AsciiString.CASE_INSENSITIVE_HASHER;
+import static io.netty5.util.AsciiString.CASE_SENSITIVE_HASHER;
 
-import static io.netty.util.AsciiString.CASE_INSENSITIVE_HASHER;
-import static io.netty.util.AsciiString.CASE_SENSITIVE_HASHER;
-
-public class DefaultStompHeaders
-        extends DefaultHeaders<CharSequence, CharSequence, StompHeaders> implements StompHeaders {
+public class DefaultStompHeaders extends DefaultHeaders<CharSequence, CharSequence, StompHeaders> implements StompHeaders {
     public DefaultStompHeaders() {
         super(CASE_SENSITIVE_HASHER, CharSequenceValueConverter.INSTANCE);
     }
@@ -60,8 +59,8 @@ public class DefaultStompHeaders
 
     @Override
     public DefaultStompHeaders copy() {
-        DefaultStompHeaders copyHeaders = new DefaultStompHeaders();
-        copyHeaders.addImpl(this);
-        return copyHeaders;
+        DefaultStompHeaders copy = new DefaultStompHeaders();
+        copy.addImpl(this);
+        return copy;
     }
 }

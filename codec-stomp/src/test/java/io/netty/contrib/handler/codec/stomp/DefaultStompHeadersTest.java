@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 The Netty Project
+ * Copyright 2022 The Netty Project
  *
  * The Netty Project licenses this file to you under the Apache License,
  * version 2.0 (the "License"); you may not use this file except in compliance
@@ -15,9 +15,19 @@
  */
 package io.netty.contrib.handler.codec.stomp;
 
-import io.netty.handler.codec.DecoderResultProvider;
+import org.junit.jupiter.api.Test;
 
-/**
- * Defines a common interface for all {@link StompSubframe} implementations.
- */
-public interface StompSubframe extends DecoderResultProvider { }
+import static org.assertj.core.api.Assertions.assertThat;
+
+class DefaultStompHeadersTest {
+    @Test
+    void shouldHaveCaseSensitiveHeaders() {
+        var headers = new DefaultStompHeaders();
+        String name = "header-name";
+        String value = "header-value";
+        headers.add(name, value);
+
+        assertThat(headers.get("Header-Name")).isNull();
+        assertThat(headers.get(name)).isEqualTo(value);
+    }
+}

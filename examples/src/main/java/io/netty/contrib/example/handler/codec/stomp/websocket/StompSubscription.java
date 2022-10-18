@@ -15,7 +15,7 @@
  */
 package io.netty.contrib.example.handler.codec.stomp.websocket;
 
-import io.netty.channel.Channel;
+import io.netty5.channel.Channel;
 
 import static java.util.Objects.requireNonNull;
 
