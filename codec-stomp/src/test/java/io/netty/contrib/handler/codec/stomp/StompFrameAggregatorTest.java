@@ -158,7 +158,7 @@ class StompFrameAggregatorTest {
                     .isEqualTo(StompCommand.SEND);
 
             assertThat(fullFrame.decoderResult().isFailure()).isTrue();
-            assertThat(fullFrame.decoderResult().cause()).hasMessage("received an invalid header line ':header-value'");
+            assertThat(fullFrame.decoderResult().cause()).hasMessage("Received an invalid header line ':header-value'");
         }
     }
 

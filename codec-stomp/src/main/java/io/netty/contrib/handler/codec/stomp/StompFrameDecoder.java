@@ -31,11 +31,11 @@ import java.util.Objects;
 /**
  * Decodes {@link Buffer}s into {@link HeadersStompFrame}s and {@link ContentStompFrame}s.
  *
- * <h3>Parameters to control memory consumption: </h3>
+ * <h3>Parameters to control memory consumption:</h3>
  * {@code maxLineLength} the maximum length of line - restricts length of command and header lines If the length of the
  * initial line exceeds this value, a {@link TooLongFrameException} will be raised.
- * <br>
- * {@code maxChunkSize} The maximum length of the content or each chunk.  If the content length (or the length of each
+ * <p>
+ * {@code maxChunkSize} The maximum length of the content or each chunk. If the content length (or the length of each
  * chunk) exceeds this value, the content or chunk ill be split into multiple {@link ContentStompFrame}s whose length
  * is {@code maxChunkSize} at maximum.
  *
@@ -221,7 +221,7 @@ public class StompFrameDecoder extends ByteToMessageDecoder {
 
             return command;
         } catch (IllegalArgumentException e) {
-            throw new DecoderException("Cannot to parse command: " + commandSequence);
+            throw new DecoderException("Cannot to parse command " + commandSequence);
         }
     }
 
@@ -242,8 +242,9 @@ public class StompFrameDecoder extends ByteToMessageDecoder {
     private static long getContentLength(StompHeaders headers) {
         long contentLength = headers.getLong(StompHeaders.CONTENT_LENGTH, 0L);
         if (contentLength < 0) {
-            throw new DecoderException(StompHeaders.CONTENT_LENGTH + " must be non-negative");
+            throw new DecoderException("The `content-length` header must be non-negative, was " + contentLength);
         }
+
         return contentLength;
     }
 
@@ -322,7 +323,7 @@ public class StompFrameDecoder extends ByteToMessageDecoder {
             }
 
             if (++lineLength > maxLineLength) {
-                throw new TooLongFrameException("An STOMP line is larger than " + maxLineLength + " bytes.");
+                throw new TooLongFrameException("STOMP line is larger than " + maxLineLength + " bytes");
             }
 
             // 1 byte   -   0xxxxxxx                    -  7 bits
@@ -383,18 +384,20 @@ public class StompFrameDecoder extends ByteToMessageDecoder {
                 if (value == null) {
                     return false;
                 }
+
                 if (name == null && value.length() == 0) {
                     return true;
                 }
+
                 if (valid) {
                     headersFrame.headers().add(name, value.toString());
                 } else if (validateHeaders) {
                     if (StringUtil.isNullOrEmpty(name)) {
-                        throw new IllegalArgumentException("received an invalid header line '" + value + '\'');
+                        throw new IllegalArgumentException("Received an invalid header line '" + value + '\'');
                     }
+
                     String line = name + ':' + value;
-                    throw new IllegalArgumentException("a header value or name contains a prohibited character ':'"
-                            + ", " + line);
+                    throw new IllegalArgumentException("Header value or name contains prohibited character ':', " + line);
                 }
             }
         }

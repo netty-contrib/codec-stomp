@@ -21,6 +21,9 @@ import java.util.Objects;
 
 import static java.util.Objects.requireNonNull;
 
+/**
+ * Skeleton implementation of the {@link StompFrame}.
+ */
 public abstract class DefaultStompFrame implements StompFrame {
 
     private DecoderResult decoderResult = DecoderResult.success();

@@ -26,6 +26,9 @@ import java.util.Map.Entry;
 import static io.netty5.util.AsciiString.CASE_INSENSITIVE_HASHER;
 import static io.netty5.util.AsciiString.CASE_SENSITIVE_HASHER;
 
+/**
+ * Default implementation of the {@link StompHeaders}.
+ */
 public class DefaultStompHeaders extends DefaultHeaders<CharSequence, CharSequence, StompHeaders> implements StompHeaders {
     public DefaultStompHeaders() {
         super(CASE_SENSITIVE_HASHER, CharSequenceValueConverter.INSTANCE);

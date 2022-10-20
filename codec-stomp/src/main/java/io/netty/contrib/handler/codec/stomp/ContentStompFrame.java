@@ -20,7 +20,7 @@ import io.netty5.channel.ChannelPipeline;
 import io.netty5.util.Resource;
 
 /**
- * An STOMP chunk which is used for STOMP chunked transfer-encoding. {@link StompFrameDecoder} generates
+ * A STOMP chunk which is used for STOMP chunked transfer-encoding. {@link StompFrameDecoder} generates
  * {@link ContentStompFrame} after {@link HeadersStompFrame} when the content is large or the encoding of
  * the content is 'chunked.  If you prefer not to receive multiple {@link StompFrame}s for a single
  * {@link FullStompFrame}, place {@link StompFrameAggregator} after {@link StompFrameDecoder} in the
