@@ -14,7 +14,7 @@
     <version>${parent.version}</version>
 
     <properties>
-        <jmh.version>1.33</jmh.version>
+        <jmh.version>1.35</jmh.version>
     </properties>
 
     <dependencies>
@@ -27,6 +27,11 @@
             <groupId>io.netty</groupId>
             <artifactId>netty5-microbench</artifactId>
             <version>${netty.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openjdk.jmh</groupId>
+            <artifactId>jmh-core</artifactId>
+            <version>${jmh.version}</version>
         </dependency>
         <dependency>
             <groupId>org.openjdk.jmh</groupId>

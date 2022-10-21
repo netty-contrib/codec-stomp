@@ -72,12 +72,12 @@ public interface StompHeaders extends Headers<CharSequence, CharSequence, StompH
     /**
      * Returns {@code true} if a header with the {@code name} and {@code value} exists, {@code false} otherwise.
      * <p>
-     * If {@code ignoreCase} is {@code true} then a case insensitive compare is done on the value.
+     * If {@code ignoreCase} is {@code true} then a case-insensitive compare is done on the value.
      *
      * @param name       the name of the header to find
      * @param value      the value of the header to find
-     * @param ignoreCase {@code true} then a case insensitive compare is run to compare values.
-     *                   otherwise a case sensitive compare is run to compare values.
+     * @param ignoreCase {@code true} then a case-insensitive compare is run to compare values.
+     *                   otherwise a case-sensitive compare is run to compare values.
      */
     boolean contains(CharSequence name, CharSequence value, boolean ignoreCase);
 

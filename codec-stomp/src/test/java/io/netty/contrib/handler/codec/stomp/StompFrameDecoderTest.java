@@ -203,7 +203,7 @@ public class StompFrameDecoderTest {
 
         assertThat(headersFrame.decoderResult().isFailure()).isTrue();
         assertThat(headersFrame.decoderResult().cause()).hasMessage(
-                "a header value or name contains a prohibited character ':', current-time:2000-01-01T00:00:00");
+                "Header value or name contains prohibited character ':', current-time:2000-01-01T00:00:00");
     }
 
     @Test
@@ -220,7 +220,7 @@ public class StompFrameDecoderTest {
                 .isEqualTo(StompCommand.SEND);
 
         assertThat(headersFrame.decoderResult().isFailure()).isTrue();
-        assertThat(headersFrame.decoderResult().cause()).hasMessage("received an invalid header line ':header-value'");
+        assertThat(headersFrame.decoderResult().cause()).hasMessage("Received an invalid header line ':header-value'");
     }
 
     @Test

@@ -25,8 +25,9 @@ import io.netty5.handler.codec.MessageAggregator;
 /**
  * A {@link ChannelHandler} that aggregates an {@link HeadersStompFrame}
  * and its following {@link ContentStompFrame}s into a single {@link FullStompFrame}.
- * It is useful when you don't want to take care of STOMP frames whose content is 'chunked'.  Insert this
- * handler after {@link StompFrameDecoder} in the {@link ChannelPipeline}:
+ * <p>
+ * It is useful when you don't want to take care of STOMP frames whose content is 'chunked'.
+ * Insert this handler after {@link StompFrameDecoder} in the {@link ChannelPipeline}.
  */
 public class StompFrameAggregator<C extends ContentStompFrame<C>>
     extends MessageAggregator<StompFrame, HeadersStompFrame, ContentStompFrame<C>, FullStompFrame> {

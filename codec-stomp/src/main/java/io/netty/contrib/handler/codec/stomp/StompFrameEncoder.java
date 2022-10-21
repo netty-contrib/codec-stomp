@@ -82,7 +82,7 @@ public class StompFrameEncoder extends MessageToMessageEncoder<StompFrame> {
             out.add(convertedFull);
         } else if (msg instanceof HeadersStompFrame) {
             HeadersStompFrame headersFrame = (HeadersStompFrame) msg;
-            Buffer buffer = ctx.bufferAllocator().allocate(headersSubFrameSize(headersFrame));
+            Buffer buffer = ctx.bufferAllocator().allocate(headersStompFrameSize(headersFrame));
             encodeHeaders(headersFrame, buffer);
 
             Object convertedHeaders = convertHeadersFrame(headersFrame, buffer);
@@ -108,7 +108,7 @@ public class StompFrameEncoder extends MessageToMessageEncoder<StompFrame> {
 
     /**
      * An extension method to convert a STOMP encoded buffer to a different message type
-     * based on an original {@link HeadersStompFrame} headers sub frame.
+     * based on an original {@link HeadersStompFrame} headers stomp frame.
      *
      * <p>By default an encoded buffer is returned as is.
      */
@@ -118,7 +118,7 @@ public class StompFrameEncoder extends MessageToMessageEncoder<StompFrame> {
 
     /**
      * An extension method to convert a STOMP encoded buffer to a different message type
-     * based on an original {@link HeadersStompFrame} content sub frame.
+     * based on an original {@link ContentStompFrame} content stomp frame.
      *
      * <p>By default an encoded buffer is returned as is.
      */
@@ -130,7 +130,7 @@ public class StompFrameEncoder extends MessageToMessageEncoder<StompFrame> {
      * Returns a heuristic size for headers (32 bytes per header line) + (2 bytes for colon and eol) + (additional
      * command buffer).
      */
-    protected int headersSubFrameSize(HeadersStompFrame headersFrame) {
+    protected int headersStompFrameSize(HeadersStompFrame headersFrame) {
         int estimatedSize = headersFrame.headers().size() * 34 + 48;
         if (estimatedSize < 128) {
             return 128;
@@ -142,7 +142,7 @@ public class StompFrameEncoder extends MessageToMessageEncoder<StompFrame> {
 
     private Buffer encodeFullFrame(FullStompFrame fullFrame, ChannelHandlerContext ctx) {
         int contentReadableBytes = fullFrame.payload().readableBytes();
-        Buffer buf = ctx.bufferAllocator().allocate(headersSubFrameSize(fullFrame) + contentReadableBytes);
+        Buffer buf = ctx.bufferAllocator().allocate(headersStompFrameSize(fullFrame) + contentReadableBytes);
         encodeHeaders(fullFrame, buf);
 
         if (contentReadableBytes > 0) {

@@ -19,21 +19,23 @@ package io.netty.contrib.handler.codec.stomp;
  * STOMP commands.
  */
 public enum StompCommand {
-
-    STOMP,
-    CONNECT,
-    CONNECTED,
+    // Client commands.
     SEND,
     SUBSCRIBE,
     UNSUBSCRIBE,
+    BEGIN,
+    COMMIT,
+    ABORT,
     ACK,
     NACK,
-    BEGIN,
-    ABORT,
-    COMMIT,
     DISCONNECT,
+    CONNECT,
+    STOMP,
+    // Server commands.
+    CONNECTED,
     MESSAGE,
     RECEIPT,
     ERROR,
+    // Non-protocol internal commands.
     UNKNOWN
 }
